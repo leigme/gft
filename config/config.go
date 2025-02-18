@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"encoding/json"
 	"log"
 	"os"
@@ -19,19 +20,25 @@ func (j *Json) Load() {
 	if err == nil {
 		err = json.Unmarshal(data, j)
 	}
-	if err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func (j *Json) Update() {
 	data, err := json.Marshal(j)
 	if err == nil {
-		if err = os.WriteFile(Path(), data, os.ModePerm); err == nil {
+		f, err := os.OpenFile(Path(), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+		if err == nil {
+			defer func() {
+				err = f.Close()
+				if err != nil {
+					log.Fatalln("config.Update()", err)
+				}
+			}()
+			wr := bufio.NewWriter(f)
+			wr.Write(data)
+			wr.Flush()
 			return
 		}
 	}
-	log.Fatalln("config.Update()", err)
 }
 
 func ConfigDir() string {
