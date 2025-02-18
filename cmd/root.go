@@ -1,20 +1,16 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"bufio"
 	"errors"
+	"github.com/leigme/gft/config"
+	"github.com/leigme/gft/model"
+	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/leigme/gft/config"
-	"github.com/leigme/gft/model"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -22,18 +18,10 @@ var (
 	cj = config.Json{}
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "gft",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	Short: "Generate files through templates",
+	Long:  `Generate files through templates, for example: --t your template --g create file --a template param`,
 	Run: func(cmd *cobra.Command, args []string) {
 		defer cj.Update()
 		bindLast()
@@ -46,8 +34,6 @@ to quickly create a Cobra application.`,
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -97,6 +83,9 @@ func paramCheck() error {
 	if strings.EqualFold(p.Args, "") {
 		return errors.New("--a is nil")
 	}
+	if !strings.Contains(p.Args, ":") {
+		return errors.New("--a must be contains `:`")
+	}
 	return nil
 }
 
@@ -113,7 +102,9 @@ func generate() {
 		if !os.IsNotExist(err) {
 			log.Fatalln("path: ", p.Generate, "generate file fail", err)
 		}
-		os.MkdirAll(filepath.Dir(p.Generate), os.ModePerm)
+		if err = os.MkdirAll(filepath.Dir(p.Generate), os.ModePerm); err != nil {
+			log.Println(err)
+		}
 	}
 	f, err := os.OpenFile(p.Generate, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	defer func() {
@@ -122,8 +113,12 @@ func generate() {
 		}
 	}()
 	w := bufio.NewWriter(f)
-	t.Execute(w, paramMap(p.Args))
-	w.Flush()
+	if err = t.Execute(w, paramMap(p.Args)); err != nil {
+		log.Fatalln(err)
+	}
+	if err = w.Flush(); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func paramMap(arg string) map[string]interface{} {

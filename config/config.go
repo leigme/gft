@@ -34,14 +34,14 @@ func (j *Json) Update() {
 				}
 			}()
 			wr := bufio.NewWriter(f)
-			wr.Write(data)
-			wr.Flush()
+			_, err = wr.Write(data)
+			err = wr.Flush()
 			return
 		}
 	}
 }
 
-func ConfigDir() string {
+func Dir() string {
 	executablePath, err := os.Executable()
 	if err != nil {
 		log.Fatalln("Error getting executable path:", err)
@@ -52,7 +52,7 @@ func ConfigDir() string {
 
 func Path() string {
 	if homeDir, err := os.UserHomeDir(); err == nil {
-		return filepath.Join(homeDir, ConfigDir(), conf)
+		return filepath.Join(homeDir, Dir(), conf)
 	} else {
 		log.Fatalln("config.Path()", err)
 	}
