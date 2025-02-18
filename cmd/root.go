@@ -24,7 +24,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gpf",
+	Use:   "gft",
 	Short: "A brief description of your application",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
@@ -64,7 +64,7 @@ func init() {
 }
 
 func createDir() {
-	configPath := config.Path(".config/gpf", "conf.json")
+	configPath := config.Path()
 	_, err := os.Stat(filepath.Dir(configPath))
 	if err != nil {
 		if os.IsNotExist(err) {
