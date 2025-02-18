@@ -68,7 +68,7 @@ func createDir() {
 	_, err := os.Stat(filepath.Dir(configPath))
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(configPath, os.ModePerm)
+			err = os.MkdirAll(filepath.Dir(configPath), os.ModePerm)
 			if err == nil {
 				return
 			}
